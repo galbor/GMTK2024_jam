@@ -1,25 +1,9 @@
 ﻿using UnityEngine.Events;
 using System.Collections.Generic;
-using Effects;
 
 public class EventManagerScript : Singleton<EventManagerScript>
 {
-	public const string StartGame = "StartGame";
-    public const string PlayerFirstLand = "PlayerFirstLand";
-	public const string WaterHit = "WaterHit";
-	public const string PlayerDrowned = "PlayerDrowned";
-	public const string PlayerHit = "PlayerHit";
-	public const string Win = "Win";
-    public const string Lose = "Lose";
-	public const string StartDescent = "start descent";
-	public const string StopDescent = "stop descent";
-    public const string DishWithDishCollision = "DishWithDishCollision";
-
-    private bool restarted = false; //used to check if the game was restarted
-									//I pur it here because it's a singleton with DontDestroyOnLoad
-	
-
-	protected EventManagerScript()
+    protected EventManagerScript()
     {
         Init();
     } // guarantee this will be always a singleton only - can't use the constructor!
@@ -68,16 +52,5 @@ public class EventManagerScript : Singleton<EventManagerScript>
 		{
 			thisEvent.Invoke (obj);
 		}
-	}
-	
-	public void restart()
-	{
-		ScreenEffects.StopShake();
-		restarted = true;
-	}
-	
-	public bool isRestarted()
-	{
-		return restarted;
 	}
 }
