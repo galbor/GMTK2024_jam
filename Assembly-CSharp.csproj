@@ -45,16 +45,17 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.16f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Cannon.cs" />
-    <Compile Include="Assets\Scripts\EventManagerScript.cs" />
-    <Compile Include="Assets\Scripts\Bullet.cs" />
+    <Compile Include="Assets\Scripts\Helpers\Restarter.cs" />
+    <Compile Include="Assets\Scripts\Unused\Cannon.cs" />
+    <Compile Include="Assets\Scripts\Helpers\Singleton.cs" />
+    <Compile Include="Assets\Scripts\Unused\Tank.cs" />
     <Compile Include="Assets\Scripts\MapDisplayer.cs" />
-    <Compile Include="Assets\Scripts\Singleton.cs" />
-    <Compile Include="Assets\Scripts\Pool.cs" />
-    <Compile Include="Assets\Scripts\SetResolution.cs" />
+    <Compile Include="Assets\Scripts\Helpers\Pool.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\MapMatrix.cs" />
-    <Compile Include="Assets\Scripts\Tank.cs" />
+    <Compile Include="Assets\Scripts\Helpers\SetResolution.cs" />
+    <Compile Include="Assets\Scripts\Helpers\EventManagerScript.cs" />
+    <Compile Include="Assets\Scripts\Unused\Bullet.cs" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.16f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

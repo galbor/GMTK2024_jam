@@ -7,7 +7,9 @@ namespace DefaultNamespace
     {
         [SerializeField] private string _mapPath;
         [SerializeField] private float _spacing = 0.5f;
-        [SerializeField] private Vector2 _start;
+        [SerializeField] private float _scale = 1f;
+        private Vector2 _start;
+        private float _realSpacing;
         
         [SerializeField] private Pool _playerPool;
         [SerializeField] private Pool _rockPool;
@@ -17,33 +19,70 @@ namespace DefaultNamespace
         private MapMatrix _mapMatrix;
         private void Start()
         {
-            _mapMatrix = new MapMatrix("./Assets/Maps/" + _mapPath);
-            DisplayMap(_mapMatrix);
+            _realSpacing = _spacing * _scale;
+            ResetMap();
         }
-        
-        private void DisplayMap(MapMatrix mapMatrix)
+
+        public void ResetMap()
         {
+            _mapMatrix = new MapMatrix("./Assets/Maps/" + _mapPath);
+            _start = new Vector2(-_mapMatrix.Matrix.GetLength(0) * _realSpacing / 2, _mapMatrix.Matrix.GetLength(1) * _realSpacing / 2);
+            DisplayBackground(_mapMatrix);
+            DisplayMapObjects(_mapMatrix);
+        }
+
+        private void DisplayBackground(MapMatrix mapMatrix)
+        {
+            ReturnAllToPool(_wallPool);
             var matrix = mapMatrix.Matrix;
-            ReturnAllToPools();
+            //same for airpool
             for (int i = 0; i < matrix.GetLength(0); i++)
             {
                 for (int j = 0; j < matrix.GetLength(1); j++)
                 {
-                    var cell = matrix[i, j];
-                    Vector3 position = _start - new Vector2(-i * _spacing, j * _spacing);
-                    switch (cell.Type)
+                    Vector3 position = _start + new Vector2(i * _realSpacing, -j * _realSpacing);
+                    switch (matrix[i, j].Type)
                     {
                         case MapMatrix.CellType.Wall:
-                            _wallPool.Get(position, _wallPool.transform);
+                            _wallPool.Get(position, _scale);
                             break;
+                        default:
+                            //airpool.get
+                            break;
+                    }
+                }
+            }
+        }
+        
+        private void DisplayMapObjects(MapMatrix mapMatrix)
+        {
+            GameObject obj = this.gameObject;
+            var matrix = mapMatrix.Matrix;
+            ReturnAllToPool(_playerPool);
+            ReturnAllToPool(_rockPool);
+            for (int i = 0; i <matrix.GetLength(0) ; i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    var cell = matrix[i, j];
+                    Vector3 position = _start + new Vector2(i * _realSpacing, -j * _realSpacing);
+                    if (!cell.TopLeft.Equals(new MapMatrix.Position(i,j)) && !cell.TopLeft.Equals(MapMatrix.Position.Empty()))
+                        continue;
+                    switch (cell.Type)
+                    {
                         case MapMatrix.CellType.Player:
-                            _playerPool.Get(position, _playerPool.transform);
+                            obj = _playerPool.Get(position, _scale);
                             break;
                         case MapMatrix.CellType.Rock:
-                            _rockPool.Get(position, _rockPool.transform);
+                            obj = _rockPool.Get(position, _scale);
                             break;
                         default:
                             break;
+                    }
+                    if (_mapMatrix.CellSize(new MapMatrix.Position(i, j)) == 2)
+                    {
+                        obj.transform.localScale *= 2;
+                        obj.transform.position += new Vector3(_realSpacing / 2, -_realSpacing / 2);
                     }
                 }
             }
@@ -51,24 +90,23 @@ namespace DefaultNamespace
 
         private void ReturnAllToPools()
         {
-            for (int i = 0; i<_wallPool.transform.childCount; i++)
+            ReturnAllToPool(_rockPool);
+            ReturnAllToPool(_wallPool);
+            ReturnAllToPool(_playerPool);
+        }
+
+        private void ReturnAllToPool(Pool pool)
+        {
+            for (int i = 0; i<pool.transform.childCount; i++)
             {
-                _wallPool.Return(_wallPool.transform.GetChild(i).gameObject);
-            }
-            for (int i = 0; i<_playerPool.transform.childCount; i++)
-            {
-                _playerPool.Return(_playerPool.transform.GetChild(i).gameObject);
-            }
-            for (int i = 0; i<_rockPool.transform.childCount; i++)
-            {
-                _rockPool.Return(_rockPool.transform.GetChild(i).gameObject);
+                pool.Return(pool.transform.GetChild(i).gameObject);
             }
         }
 
         public void MovePlayer(int dx, int dy)
         {
             _mapMatrix.MovePlayer(dx, dy);
-            DisplayMap(_mapMatrix);
+            DisplayMapObjects(_mapMatrix);
         }
     }
 }

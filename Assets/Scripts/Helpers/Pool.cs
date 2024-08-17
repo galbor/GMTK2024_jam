@@ -8,16 +8,21 @@ namespace DefaultNamespace
         private Queue<GameObject> _pool = new Queue<GameObject>();
         [SerializeField] private GameObject _prefab;
         
-        public GameObject Get(Vector2 position, Transform parent = null)
+        public GameObject Get(Vector2 position, float scale = 1f)
         {
+            GameObject obj;
             if (_pool.Count == 0)
             {
-                return Instantiate(_prefab, position, Quaternion.identity, parent);
+                obj = Instantiate(_prefab, position, Quaternion.identity, transform);
             }
-            var obj = _pool.Dequeue();
-            obj.transform.position = position;
-            obj.transform.SetParent(parent);
-            obj.SetActive(true);
+            else
+            {
+                obj = _pool.Dequeue();
+                obj.transform.position = position;
+                obj.transform.SetParent(transform);
+                obj.SetActive(true);
+            }
+            obj.transform.localScale = Vector3.one * scale;
             return obj;
         }
         
