@@ -19,6 +19,18 @@ namespace DefaultNamespace
             Portal,
             Player,
             Rock,
+            End
+        }
+
+        public bool MayEnter(CellType origin, CellType target)
+        {
+            if (origin == CellType.Player)
+            {
+                if (target == CellType.Air || target == CellType.Key)
+                    return true;
+                return false;
+            }
+            return origin == CellType.Rock && target == CellType.Air;
         }
 
         public struct Cell
@@ -129,7 +141,8 @@ namespace DefaultNamespace
                 return 1;
             }
 
-            return CellAt(pos.Shift(1, 1)).TopLeft.y == pos.y ? 2 : 1;
+            return CellAt(pos.Shift(1, 1)).TopLeft.y == pos.y &&
+                   CellAt(pos.Shift(1, 1)).TopLeft.x == pos.x ? 2 : 1;
         }
 
 
@@ -147,66 +160,72 @@ namespace DefaultNamespace
         {
             pos = Origin(pos);
             Cell cell = CellAt(pos);
-            if (cell.Type == CellType.Air)
+            CellType moverCellType = cell.Type;
+            if (moverCellType == CellType.Air)
             {
                 return true;
             }
-            if (cell.Type != CellType.Player && cell.Type != CellType.Rock)
+            if (moverCellType != CellType.Player && moverCellType != CellType.Rock)
             {
                 return false;
             }
             int size = CellSize(pos);
             
-            if (cell.Type == CellType.Rock && force < size)
+            if (moverCellType == CellType.Rock && force < size)
             {
                 return false;
             }
 
             Position newPos = pos.Shift(dx, dy);
-            
-            if (size == 1 && cell.Type == CellType.Player)
+            if (size == 1)
             {
-                switch (CellAt(newPos).Type)
+                if (CellAt(newPos).Type == CellType.Portal)
                 {
-                    case CellType.Air:
-                        return true;
-                    case CellType.Wall:
-                        return false;
-                    case CellType.Rock:
+                    return CanTeleport(moverCellType, Origin(newPos).Shift(2*dx, 2*dy), 2);
+                }
+                else if (moverCellType == CellType.Player)
+                {
+                    if (CellAt(newPos).Type == CellType.Rock)
+                    {
                         return CanMove(newPos, dx, dy, force);
-                    case CellType.Door:
-                        // TODO if player has key
-                        return false;
-                    case CellType.Key:
-                        return true;
-                    case CellType.Portal:
-                        return true;
-                    default:
-                        return false;
+                    }
+                    return MayEnter(moverCellType, CellAt(newPos).Type);
+                }
+
+                else if (moverCellType == CellType.Rock)
+                {
+                    if (CellAt(newPos).Type == CellType.Rock)
+                    {
+                        return CanMove(newPos, dx, dy, force - size);
+                    }
+                    return MayEnter(moverCellType, CellAt(newPos).Type);
+                }
+                else
+                {
+                    //something wrong if gets here
+                    Debug.Log("Someone is trying to move something that is not a player or a rock.");
+                    return false;
                 }
             }
 
-            if (size == 1 && cell.Type == CellType.Rock)
+            var (edgePos1, edgePos2) = EdgePositions(pos, dx, dy);
+            
+            //needs both edges to be portal if one of them is portal
+            //in which case teleports to one of the locations
+            if (CellAt(edgePos1).Type == CellType.Portal || CellAt(edgePos2).Type == CellType.Portal)
             {
-                switch (CellAt(newPos).Type)
-                {
-                    case CellType.Air:
-                        return true;
-                    case CellType.Rock:
-                        return CanMove(newPos, dx, dy, force - size);
-                    default:
-                        return false;
-                }   
+                if (CellAt(edgePos1).Type != CellType.Portal || CellAt(edgePos2).Type != CellType.Portal)
+                    return false;
+                //edge positions of portal
+                (edgePos1, edgePos2) = EdgePositions(Origin(edgePos1), dx, dy);
+                return CanTeleport(moverCellType, edgePos1, 1) || CanTeleport(moverCellType, edgePos2, 1);
             }
-            //redundant
-            if (size == 1) return false;
-            var (edgePos1, edgePos2) = EdgePositions(cell.TopLeft, dx, dy);
-            if (cell.Type == CellType.Player)
+            if (moverCellType == CellType.Player)
             {
                 return CanMove(edgePos1, dx, dy, force) && CanMove(edgePos2, dx, dy, force);
                 // TODO verify that we aren't moving 2 big rocks
             }
-            if (cell.Type == CellType.Rock)
+            if (moverCellType == CellType.Rock)
             {
                 return CanMove(edgePos1, dx, dy, force - size) && CanMove(edgePos2, dx, dy, force - size);
             }
@@ -227,6 +246,76 @@ namespace DefaultNamespace
             return (edgePos1, edgePos2);
         }
 
+        private bool CanTeleport(CellType moverCellType, Position newPos, int size)
+        {
+            if (moverCellType != CellType.Player && moverCellType != CellType.Rock)
+            {
+                return false;
+            }
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (!MayEnter(moverCellType, CellAt(newPos.Shift(i, j)).Type))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private void Teleport(Position pos,Position portalPos , int dx, int dy)
+        {
+            pos = Origin(pos);
+            portalPos = Origin(portalPos);
+            CellType moverCellType = CellAt(pos).Type;
+            int newSize = 3- CellSize(pos); //2->1, 1->2
+            Position[] newPos = new Position[2];
+            if (newSize == 1)
+            {
+                (newPos[0], newPos[1]) = EdgePositions(portalPos, dx, dy);
+                for (int i = 0; i < newPos.Length; i++)
+                {
+                    if (!MayEnter(moverCellType, CellAt(newPos[i]).Type))
+                        continue;
+                    ref Cell newCell = ref CellAt(newPos[i]);
+                    newCell.Type = CellAt(pos).Type;
+                    newCell.TopLeft = newPos[i];
+                    EraseSquare(pos);
+                    SetPlayerPosition(newPos[i]);
+                    return;
+                }
+            }
+            //else newSize == 2
+            dx *= 2;
+            dy *= 2;
+            newPos[0] = portalPos.Shift(dx, dy);
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    ref Cell newCell = ref CellAt(newPos[0].Shift(i,j));
+                    newCell.Type = moverCellType;
+                    newCell.TopLeft = newPos[0];
+                }
+            }
+            SetPlayerPosition(newPos[0]);
+
+            ref Cell originalCell = ref CellAt(pos);
+            originalCell.Type = CellType.Air;
+            return;
+        }
+
+        private void SetPlayerPosition(Position pos)
+        {
+            if (CellAt(pos).Type == CellType.Player)
+            {
+                _playerPosition = pos;
+            }
+        }
+
         public void Move(Position pos, int dx, int dy)
         {
             if (CellAt(pos).Type == CellType.Air) return;
@@ -238,6 +327,11 @@ namespace DefaultNamespace
 
             if (size == 1)
             {
+                if (CellAt(newPos).Type == CellType.Portal)
+                {
+                    Teleport(pos, newPos, dx, dy);
+                    return;
+                }
 
                 if (CellAt(newPos).Type == CellType.Rock)
                 {
@@ -247,6 +341,8 @@ namespace DefaultNamespace
                 ref Cell newCell = ref CellAt(newPos);
                 newCell.Type = cell.Type;
                 newCell.TopLeft = Position.Empty();
+                SetPlayerPosition(newPos);
+                
 
                 cell.Type = CellType.Air;
                 cell.TopLeft = Position.Empty();
@@ -254,6 +350,13 @@ namespace DefaultNamespace
             }
 
             var (edgePos1, edgePos2) = EdgePositions(pos, dx, dy);
+            if (CellAt(edgePos1).Type == CellType.Portal)
+            {
+                Teleport(pos, edgePos1, dx, dy);
+                return;
+            }
+            
+            
             if (CellAt(edgePos1).Type == CellType.Rock)
                 Move(edgePos1, dx, dy);
             if (CellAt(edgePos2).Type == CellType.Rock)
@@ -265,11 +368,12 @@ namespace DefaultNamespace
             {
                 for (int j = 0; j < 2; j++)
                 {
-                    ref Cell newCell = ref CellAt(pos.Shift(i+dx,j+dy));
+                    ref Cell newCell = ref CellAt(newPos.Shift(i,j));
                     newCell.Type = type;
                     newCell.TopLeft = newPos;
                 }
             }
+            SetPlayerPosition(newPos);
         }
 
         //erase 2x2 square
@@ -290,7 +394,6 @@ namespace DefaultNamespace
         {
             if (!CanMove(_playerPosition, dx, dy)) return;
             Move(_playerPosition, dx, dy);
-            _playerPosition = _playerPosition.Shift(dx, dy);
         }
 
 
