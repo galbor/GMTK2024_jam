@@ -31,5 +31,18 @@ namespace DefaultNamespace
             obj.SetActive(false);
             _pool.Enqueue(obj);
         }
+
+        public void ReturnAll()
+        {
+            GameObject obj;
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                obj = transform.GetChild(i).gameObject;
+                if (obj.activeSelf)
+                {
+                    Return(obj);
+                }
+            }
+        }
     }
 }

@@ -14,6 +14,8 @@ namespace DefaultNamespace
         [SerializeField] private Pool _playerPool;
         [SerializeField] private Pool _rockPool;
         [SerializeField] private Pool _wallPool;
+        [SerializeField] private Pool _airPool;
+        [SerializeField] private Pool _portalPool;
         
         
         private MapMatrix _mapMatrix;
@@ -33,9 +35,9 @@ namespace DefaultNamespace
 
         private void DisplayBackground(MapMatrix mapMatrix)
         {
-            ReturnAllToPool(_wallPool);
+            _wallPool.ReturnAll();
+            _airPool.ReturnAll();
             var matrix = mapMatrix.Matrix;
-            //same for airpool
             for (int i = 0; i < matrix.GetLength(0); i++)
             {
                 for (int j = 0; j < matrix.GetLength(1); j++)
@@ -47,26 +49,28 @@ namespace DefaultNamespace
                             _wallPool.Get(position, _scale);
                             break;
                         default:
-                            //airpool.get
+                            _airPool.Get(position, _scale);
                             break;
                     }
                 }
             }
         }
-        
+
         private void DisplayMapObjects(MapMatrix mapMatrix)
         {
             GameObject obj = this.gameObject;
             var matrix = mapMatrix.Matrix;
-            ReturnAllToPool(_playerPool);
-            ReturnAllToPool(_rockPool);
-            for (int i = 0; i <matrix.GetLength(0) ; i++)
+            _playerPool.ReturnAll();
+            _rockPool.ReturnAll();
+            _portalPool.ReturnAll();
+            for (int i = 0; i < matrix.GetLength(0); i++)
             {
                 for (int j = 0; j < matrix.GetLength(1); j++)
                 {
                     var cell = matrix[i, j];
                     Vector3 position = _start + new Vector2(i * _realSpacing, -j * _realSpacing);
-                    if (!cell.TopLeft.Equals(new MapMatrix.Position(i,j)) && !cell.TopLeft.Equals(MapMatrix.Position.Empty()))
+                    if (!cell.TopLeft.Equals(new MapMatrix.Position(i, j)) &&
+                        !cell.TopLeft.Equals(MapMatrix.Position.Empty()))
                         continue;
                     switch (cell.Type)
                     {
@@ -76,9 +80,13 @@ namespace DefaultNamespace
                         case MapMatrix.CellType.Rock:
                             obj = _rockPool.Get(position, _scale);
                             break;
+                        case MapMatrix.CellType.Portal:
+                            obj = _portalPool.Get(position, _scale);
+                            break;
                         default:
                             break;
                     }
+
                     if (_mapMatrix.CellSize(new MapMatrix.Position(i, j)) == 2)
                     {
                         obj.transform.localScale *= 2;
@@ -88,20 +96,6 @@ namespace DefaultNamespace
             }
         }
 
-        private void ReturnAllToPools()
-        {
-            ReturnAllToPool(_rockPool);
-            ReturnAllToPool(_wallPool);
-            ReturnAllToPool(_playerPool);
-        }
-
-        private void ReturnAllToPool(Pool pool)
-        {
-            for (int i = 0; i<pool.transform.childCount; i++)
-            {
-                pool.Return(pool.transform.GetChild(i).gameObject);
-            }
-        }
 
         public void MovePlayer(int dx, int dy)
         {

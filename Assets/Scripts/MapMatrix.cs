@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
 
 namespace DefaultNamespace
 {
@@ -28,6 +30,11 @@ namespace DefaultNamespace
             {
                 Type = type;
                 TopLeft = Position.Empty();
+            }
+            public Cell(CellType type, Position topLeft)
+            {
+                Type = type;
+                TopLeft = topLeft;
             }
         }
 
@@ -295,62 +302,92 @@ namespace DefaultNamespace
             int height = lines.Length;
             _matrix = new Cell[width, height];
             
-            for (int i = lines.Length-1; i >= 0; i--)
+            for (int j = lines.Length-1; j >= 0; j--)
             {
-                string cells = lines[i];
-                for (int j = cells.Length-1; j >=0; j--)
+                string cells = lines[j];
+                for (int i = cells.Length-1; i >=0; i--)
                 {
-                    switch (cells[j])
+                    switch (cells[i])
                     {
                         case ' ':
-                            _matrix[j, i] = new Cell(CellType.Air);
+                            _matrix[i, j] = new Cell(CellType.Air);
                             break;
                         case 'X':
-                            _matrix[j, i] = new Cell(CellType.Wall);
+                            _matrix[i, j] = new Cell(CellType.Wall);
                             break;
                         case 'D':
-                            _matrix[j, i] = new Cell(CellType.Door);
+                            _matrix[i, j] = new Cell(CellType.Door);
                             break;
                         case 'K':
-                            _matrix[j, i] = new Cell(CellType.Key);
+                            _matrix[i, j] = new Cell(CellType.Key);
+                            break;
+                        case '#':
+                            _matrix[i, j] = new Cell(CellType.Portal);
+                            SetTopLeft2x2(i,j);
                             break;
                         case '@':
-                            _matrix[j, i] = new Cell( CellType.Portal);
+                            _matrix[i, j] = new Cell(CellType.Portal);
                             break;
                         case 'R':
-                            _matrix[j, i] = new Cell( CellType.Rock);
-                            _matrix[j, i].TopLeft = new Position(j, i);
-                            for (int a = 0; a < 2; a++)
-                            {
-                                for (int b = 0; b < 2; b++)
-                                {
-                                    _matrix[j + a, i + b].TopLeft = _matrix[j, i].TopLeft;
-                                }
-                            }
+                            _matrix[i, j] = new Cell( CellType.Rock);
+                            SetTopLeft2x2(i,j);
                             break;
                         case 'r':
-                            _matrix[j, i] = new Cell( CellType.Rock);
+                            _matrix[i, j] = new Cell( CellType.Rock);
                             break;
                         case 'P':
-                            _matrix[j, i] = new Cell(CellType.Player);
-                            _matrix[j, i].TopLeft = new Position { x = j, y = i };
-                            _playerPosition = _matrix[j, i].TopLeft;
-                            for (int a = 0; a < 2; a++)
-                            {
-                                for (int b = 0; b < 2; b++)
-                                {
-                                    _matrix[j + a, i + b].TopLeft = _playerPosition;
-                                }
-                            }
+                            _matrix[i, j] = new Cell(CellType.Player);
+                            SetTopLeft2x2(i,j);
+                            _playerPosition = _matrix[i, j].TopLeft;
                             break;
                         case 'p':
-                            _matrix[j, i] = new Cell( CellType.Player);
+                            _matrix[i, j] = new Cell( CellType.Player);
                             break;
                         default:
-                            throw new Exception($"Invalid character in map file '{cells[i]}'");
+                            throw new Exception($"Invalid character in map file '{cells[j]}'");
                     }
                 }
             }
+
+            // Print();
+        }
+
+        private void SetTopLeft2x2(int row, int col)
+        {
+            _matrix[row, col].TopLeft = new Position(row, col);
+            for (int a = 0; a < 2; a++)
+            {
+                for (int b = 0; b < 2; b++)
+                {
+                    _matrix[row + a, col + b].TopLeft = _matrix[row, col].TopLeft;
+                }
+            }
+        }
+
+        private void Print()
+        {
+            Debug.Log("Printing map matrix:");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i< _matrix.GetLength(1); i++)
+            {
+                for (int j = 0; j < _matrix.GetLength(0); j++)
+                {
+                    sb.Append(_matrix[j, i].Type switch
+                    {
+                        CellType.Air => ' ',
+                        CellType.Wall => 'X',
+                        CellType.Door => 'D',
+                        CellType.Key => 'K',
+                        CellType.Portal => '@',
+                        CellType.Player => 'P',
+                        CellType.Rock => 'R',
+                        _ => throw new Exception("Invalid cell type")
+                    });
+                }
+
+                sb.Append("\n");
+            }
+            Debug.Log(sb.ToString());
         }
     }
 }
