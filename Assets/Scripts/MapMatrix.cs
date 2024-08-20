@@ -26,11 +26,11 @@ namespace DefaultNamespace
         {
             if (origin == CellType.Player)
             {
-                if (target == CellType.Air || target == CellType.Key)
+                if (target == CellType.Air || target == CellType.Key || target == CellType.End)
                     return true;
                 return false;
             }
-            return origin == CellType.Rock && target == CellType.Air;
+            return origin == CellType.Rock && (target == CellType.Air || target == CellType.Key);
         }
 
         public struct Cell
@@ -141,6 +141,8 @@ namespace DefaultNamespace
                 return 1;
             }
 
+            if (!cell.TopLeft.Equals(pos)) return 2;
+
             return CellAt(pos.Shift(1, 1)).TopLeft.y == pos.y &&
                    CellAt(pos.Shift(1, 1)).TopLeft.x == pos.x ? 2 : 1;
         }
@@ -222,12 +224,14 @@ namespace DefaultNamespace
             }
             if (moverCellType == CellType.Player)
             {
-                return CanMove(edgePos1, dx, dy, force) && CanMove(edgePos2, dx, dy, force);
+                return (CanMove(edgePos1, dx, dy, force) || MayEnter(moverCellType, CellAt(edgePos1).Type)) 
+                       && (CanMove(edgePos2, dx, dy, force) || MayEnter(moverCellType, CellAt(edgePos2).Type));
                 // TODO verify that we aren't moving 2 big rocks
             }
             if (moverCellType == CellType.Rock)
             {
-                return CanMove(edgePos1, dx, dy, force - size) && CanMove(edgePos2, dx, dy, force - size);
+                return (CanMove(edgePos1, dx, dy, force-size) || MayEnter(moverCellType, CellAt(edgePos1).Type)) 
+                       && (CanMove(edgePos2, dx, dy, force-size) || MayEnter(moverCellType, CellAt(edgePos2).Type));
             }
 
             return false;
@@ -281,7 +285,7 @@ namespace DefaultNamespace
                     if (!MayEnter(moverCellType, CellAt(newPos[i]).Type))
                         continue;
                     ref Cell newCell = ref CellAt(newPos[i]);
-                    newCell.Type = CellAt(pos).Type;
+                    changeCell(newPos[i], CellAt(pos).Type);
                     newCell.TopLeft = newPos[i];
                     EraseSquare(pos);
                     SetPlayerPosition(newPos[i]);
@@ -297,7 +301,7 @@ namespace DefaultNamespace
                 for (int j = 0; j < 2; j++)
                 {
                     ref Cell newCell = ref CellAt(newPos[0].Shift(i,j));
-                    newCell.Type = moverCellType;
+                    changeCell(newPos[0].Shift(i,j), moverCellType);
                     newCell.TopLeft = newPos[0];
                 }
             }
@@ -312,7 +316,7 @@ namespace DefaultNamespace
         {
             if (CellAt(pos).Type == CellType.Player)
             {
-                _playerPosition = pos;
+                _playerPosition = Origin(pos);
             }
         }
 
@@ -339,7 +343,7 @@ namespace DefaultNamespace
                 }
 
                 ref Cell newCell = ref CellAt(newPos);
-                newCell.Type = cell.Type;
+                changeCell(newPos, cell.Type);
                 newCell.TopLeft = Position.Empty();
                 SetPlayerPosition(newPos);
                 
@@ -369,7 +373,7 @@ namespace DefaultNamespace
                 for (int j = 0; j < 2; j++)
                 {
                     ref Cell newCell = ref CellAt(newPos.Shift(i,j));
-                    newCell.Type = type;
+                    changeCell(newPos.Shift(i,j), type);
                     newCell.TopLeft = newPos;
                 }
             }
@@ -394,9 +398,58 @@ namespace DefaultNamespace
         {
             if (!CanMove(_playerPosition, dx, dy)) return;
             Move(_playerPosition, dx, dy);
+            OpenDoors();
+        }
+        
+        
+        private void changeCell(Position pos, CellType type)
+        {
+            switch (CellAt(pos).Type)
+            {
+                case CellType.Key:
+                    KeyKeeper.GetKey();
+                    break;
+                case CellType.End:
+                    EventManagerScript.Instance.TriggerEvent(EventManagerScript.ENDREACHEDEVENT, null);
+                    break;
+            }
+            CellAt(pos).Type = type;
         }
 
+        private void OpenDoors()
+        {
+            if (KeyKeeper.KeysAmt() <= 0) return;
+            int size = CellSize(_playerPosition);
+            int dx = 0;
+            int dy = -1;
+            Position[] edgePoss = new Position[2]; 
+            for (int i = 0; i < 4; i++)
+            {
+                if (size == 1)
+                    edgePoss[0] = _playerPosition.Shift(dx, dy);
+                else
+                    (edgePoss[0], edgePoss[1]) = EdgePositions(_playerPosition, dx, dy);
+                for (int j = 0; j < size; j++)
+                {
+                    if (CellAt(edgePoss[j]).Type != CellType.Door) continue;
+                    KeyKeeper.RemoveKey();
+                    changeCell(edgePoss[j], CellType.Air);
+                    if (KeyKeeper.KeysAmt() <= 0) return;
+                }
 
+                (dx, dy) = nextClockwise(dx, dy);
+            }
+        }
+
+        private (int, int) nextClockwise(int dx, int dy)
+        {
+            if (dx == 0)
+            {
+                return (-dy, 0);
+            }
+
+            return (0, dx);
+        }
 
         public MapMatrix(string path)
         {
@@ -418,10 +471,10 @@ namespace DefaultNamespace
                         case 'X':
                             _matrix[i, j] = new Cell(CellType.Wall);
                             break;
-                        case 'D':
+                        case 'd':
                             _matrix[i, j] = new Cell(CellType.Door);
                             break;
-                        case 'K':
+                        case 'k':
                             _matrix[i, j] = new Cell(CellType.Key);
                             break;
                         case '#':
@@ -445,6 +498,14 @@ namespace DefaultNamespace
                             break;
                         case 'p':
                             _matrix[i, j] = new Cell( CellType.Player);
+                            _playerPosition = new Position(i, j);
+                            break;
+                        case 'F':
+                            _matrix[i, j] = new Cell(CellType.End);
+                            SetTopLeft2x2(i,j);
+                            break;
+                        case 'f':
+                            _matrix[i, j] = new Cell(CellType.End);
                             break;
                         default:
                             throw new Exception($"Invalid character in map file '{cells[j]}'");
@@ -484,6 +545,7 @@ namespace DefaultNamespace
                         CellType.Portal => '@',
                         CellType.Player => 'P',
                         CellType.Rock => 'R',
+                        CellType.End => 'F',
                         _ => throw new Exception("Invalid cell type")
                     });
                 }

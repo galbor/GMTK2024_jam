@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 public class Restarter : MonoBehaviour
 {
     [SerializeField] private KeyCode _restartKey = KeyCode.R;
+    [SerializeField] private GameObject _startScreen;
     private bool restart;
     
     //restarts the game to the initial state
@@ -21,9 +22,11 @@ public class Restarter : MonoBehaviour
             Debug.Log("Restarted");
             // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             MapDisplayer.Instance.ResetMap();
+            KeyKeeper.Reset();
+            _startScreen.SetActive(false);
         }
-        // if (Input.GetKeyDown(KeyCode.Escape)) {
-        //     Application.Quit();
-        // }
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            Application.Quit();
+        }
     }
 }

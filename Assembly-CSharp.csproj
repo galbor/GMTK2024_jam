@@ -47,13 +47,18 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Helpers\Restarter.cs" />
     <Compile Include="Assets\Scripts\Unused\Cannon.cs" />
+    <Compile Include="Assets\Scripts\ReturnToPool.cs" />
     <Compile Include="Assets\Scripts\Helpers\Singleton.cs" />
+    <Compile Include="Assets\Scripts\Finish Level.cs" />
     <Compile Include="Assets\Scripts\Unused\Tank.cs" />
     <Compile Include="Assets\Scripts\MapDisplayer.cs" />
+    <Compile Include="Assets\Scripts\LevelManager.cs" />
+    <Compile Include="Assets\Scripts\KeysDisplayer.cs" />
     <Compile Include="Assets\Scripts\Helpers\Pool.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\MapMatrix.cs" />
     <Compile Include="Assets\Scripts\Helpers\SetResolution.cs" />
+    <Compile Include="Assets\Scripts\KeyKeeper.cs" />
     <Compile Include="Assets\Scripts\Helpers\EventManagerScript.cs" />
     <Compile Include="Assets\Scripts\Unused\Bullet.cs" />
     <Reference Include="UnityEngine">

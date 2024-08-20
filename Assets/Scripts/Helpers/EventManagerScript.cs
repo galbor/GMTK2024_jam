@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public class EventManagerScript : Singleton<EventManagerScript>
 {
+	public static string ENDREACHEDEVENT = "EndReachedEvent"; 
+	
     protected EventManagerScript()
     {
         Init();
