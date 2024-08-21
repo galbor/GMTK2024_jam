@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
-    [SerializeField] private string[] _mapPaths;
+    [SerializeField] private TextAsset[] _maps;
     [SerializeField] private MapDisplayer _mapDisplayer;
     
     [SerializeField] private KeyCode _nextLevelKey = KeyCode.E;
@@ -16,19 +16,19 @@ public class LevelManager : MonoBehaviour
     
     private void Start()
     {
-        _mapDisplayer.SetMap(_mapPaths[currentLevel]);
+        _mapDisplayer.SetMap(_maps[currentLevel]);
     }
     
     public void NextLevel(bool previous = false)
     {
         currentLevel += previous ? -1 : 1;
-        currentLevel = (currentLevel + _mapPaths.Length) % _mapPaths.Length;
+        currentLevel = (currentLevel + _maps.Length) % _maps.Length;
         // if (currentLevel >= _mapPaths.Length)
         // {
         //     Debug.Log("No more levels");
         //     return;
         // }
-        _mapDisplayer.SetMap(_mapPaths[currentLevel]);
+        _mapDisplayer.SetMap(_maps[currentLevel]);
         KeyKeeper.Reset();
     }
 

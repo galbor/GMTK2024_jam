@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Drawing;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
 namespace DefaultNamespace
 {
     public class MapDisplayer : Singleton<MapDisplayer>
     {
-        [SerializeField] private string _mapPath;
+        [FormerlySerializedAs("_mapPath")] [SerializeField] private TextAsset _map;
         [SerializeField] private float _spacing = 0.5f;
         private float _scale = 1f;
         private Vector2 _start;
@@ -29,15 +30,15 @@ namespace DefaultNamespace
         
         private MapMatrix _mapMatrix;
         
-        public void SetMap(string mapPath)
+        public void SetMap(TextAsset map)
         {
-            _mapPath = mapPath;
+            _map = map;
             ResetMap();
         }
 
         public void ResetMap()
         {
-            _mapMatrix = new MapMatrix("./Assets/Maps/" + _mapPath);
+            _mapMatrix = new MapMatrix(_map);
             ChooseScale();
             _realSpacing = _spacing * _scale;
             _start = new Vector2(-_mapMatrix.Matrix.GetLength(0) * _realSpacing / 2, _mapMatrix.Matrix.GetLength(1) * _realSpacing / 2);

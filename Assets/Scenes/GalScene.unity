@@ -5601,7 +5601,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82b57371cd7d4db59f40adfc14f55e73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mapPath: map1
+  _map: {fileID: 0}
   _spacing: 0.3
   _playerPool: {fileID: 909170987}
   _rockPool: {fileID: 353584988}
@@ -6059,6 +6059,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 7383618693857709212, guid: 0d5f47207f88c1e42ac7e821ccb38333, type: 3}
+--- !u!1 &1640545923
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1640545924}
+  - component: {fileID: 1640545925}
+  m_Layer: 0
+  m_Name: Resizer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1640545924
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640545923}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1640545925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640545923}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e76e4a2c959b224895717bf2850f041, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1666329890
 GameObject:
   m_ObjectHideFlags: 0
@@ -6414,14 +6458,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011f4b67802478c4092f46a4e78588a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mapPaths:
-  - map1
-  - map2
-  - map3
-  - map4
-  - map5
-  - map6
-  - map7
+  _maps:
+  - {fileID: 4900000, guid: be610c46269f38140a9c36a2b26fb7f9, type: 3}
+  - {fileID: 4900000, guid: 8218b698bfca45748885b760aafec60c, type: 3}
+  - {fileID: 4900000, guid: 2bacd771b50307d49840b29f5f473e48, type: 3}
+  - {fileID: 4900000, guid: 83f72dc84ebf1964eac90f0446e7776f, type: 3}
+  - {fileID: 4900000, guid: a2586cdfcf2c7e9459d62b6086a9eca8, type: 3}
+  - {fileID: 4900000, guid: bef9724c934b8e74ebf3f1ecafcd1182, type: 3}
+  - {fileID: 4900000, guid: 02be4e5877d5eef40a241bd3ab1939a3, type: 3}
   _mapDisplayer: {fileID: 1044121113}
   _nextLevelKey: 101
   _previousLevelKey: 113
@@ -6453,3 +6497,4 @@ SceneRoots:
   - {fileID: 2054143212}
   - {fileID: 991585344}
   - {fileID: 104786797}
+  - {fileID: 1640545924}

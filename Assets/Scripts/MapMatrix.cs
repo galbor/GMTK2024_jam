@@ -451,9 +451,10 @@ namespace DefaultNamespace
             return (0, dx);
         }
 
-        public MapMatrix(string path)
+        public MapMatrix(TextAsset map)
         {
-            string[] lines = System.IO.File.ReadAllLines(path);
+            string txt = map.text;
+            string[] lines = txt.Split("\r\n" );
             int width = lines[0].Length;
             int height = lines.Length;
             _matrix = new Cell[width, height];
