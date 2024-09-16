@@ -1,0 +1,7 @@
+https://golayr.itch.io/boulder-dash-with-resizing
+password: Tomeriko
+
+issues:
+- screensize is wrong for some reason
+- all levels are bad
+- it's possible to create not-working levels (need to write 4 copies of a large objects to place it, needs to put walls all around the map)
